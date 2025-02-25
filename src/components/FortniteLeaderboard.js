@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FaTrophy, FaSkull, FaGamepad, FaPercentage, FaStar, FaUserFriends, FaPlus, FaTimes, FaSort, FaSortUp, FaSortDown, FaUser, FaGithub, FaLinkedin, FaHeart, FaChartBar, FaCrown } from 'react-icons/fa';
+import { FaTrophy, FaSkull, FaGamepad, FaPercentage, FaStar, FaUserFriends, FaPlus, FaTimes, FaSort, FaSortUp, FaSortDown, FaUser, FaGithub, FaLinkedin, FaHeart, FaCrown } from 'react-icons/fa';
 
 const FortnitePlayerStats = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -10,7 +10,6 @@ const FortnitePlayerStats = () => {
   const [friends, setFriends] = useState([]);
   const [activeTab, setActiveTab] = useState('player');
   const [sortConfig, setSortConfig] = useState({ key: 'kills', direction: 'desc' });
-  const [showGraph, setShowGraph] = useState(false);
   const [myProfile, setMyProfile] = useState(null);
 
   // Load friends and myProfile from localStorage on component mount
@@ -109,7 +108,10 @@ const FortnitePlayerStats = () => {
   const handleSetAsMyProfile = () => {
     if (player) {
       setMyProfile(player);
-      // Add notification or visual feedback that profile was set
+      // Add current player to friends if not already there
+      if (!friends.some(f => f.username === player.username)) {
+        setFriends(prev => [...prev, player]);
+      }
     }
   };
 
@@ -172,20 +174,31 @@ const FortnitePlayerStats = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-b from-gray-900 to-gray-800 text-white">
-      {/* Header with animated background */}
-      <div className="p-8 bg-gradient-to-r from-blue-900 via-purple-900 to-blue-900 shadow-2xl animate-gradient-x relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-full opacity-10">
-          <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-400 rounded-full filter blur-3xl"></div>
-          <div className="absolute bottom-10 right-10 w-32 h-32 bg-blue-400 rounded-full filter blur-3xl"></div>
-        </div>
-        <div className="container mx-auto relative z-10">
-          <h1 className="text-5xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 mb-2">
-            Fortnite Stats Tracker
-          </h1>
-          <p className="text-center text-gray-300 text-lg">Track your stats and compare with friends</p>
-          
+      {/* Header with modern background */}
+<div className="p-8 bg-gradient-to-r from-gray-800 via-gray-900 to-gray-800 shadow-2xl relative overflow-hidden">
+  {/* Subtle animated gradient overlay */}
+  <div className="absolute top-0 left-0 w-full h-full opacity-20 animate-gradient-x">
+    <div className="absolute top-10 left-10 w-32 h-32 bg-purple-500 rounded-full filter blur-3xl"></div>
+    <div className="absolute bottom-10 right-10 w-32 h-32 bg-blue-500 rounded-full filter blur-3xl"></div>
+  </div>
+
+  <div className="container mx-auto relative z-10">
+    {/* Sleek and modern title */}
+    <h1 className="text-5xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400 mb-2">
+      Fortnite Stats Tracker
+    </h1>
+    {/* Subtitle with modern font and color */}
+    <p className="text-center text-gray-300 text-lg font-light tracking-wide">
+      Track your stats and compare with friends
+    </p>
           {myProfile && (
-            <div className="mt-4 p-3 bg-blue-900/50 backdrop-blur-sm rounded-lg border border-blue-700 max-w-md mx-auto flex items-center gap-4">
+            <div 
+              className="mt-4 p-3 bg-blue-900/50 backdrop-blur-sm rounded-lg border border-blue-700 max-w-md mx-auto flex items-center gap-4 cursor-pointer hover:bg-blue-900/70 transition"
+              onClick={() => {
+                setPlayer(myProfile);
+                setActiveTab('player');
+              }}
+            >
               <div className="text-3xl text-yellow-400">
                 <FaStar />
               </div>
@@ -363,16 +376,6 @@ const FortnitePlayerStats = () => {
             <div className="p-6 bg-gray-800/80 backdrop-blur-sm rounded-lg shadow-xl border border-gray-700">
               <div className="flex flex-col md:flex-row justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold text-center mb-3 md:mb-0">Friend Leaderboard</h2>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowGraph(!showGraph)}
-                    className={`px-4 py-2 rounded-lg flex items-center gap-2 transition ${
-                      showGraph ? 'bg-yellow-600 text-white' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                    }`}
-                  >
-                    <FaChartBar /> {showGraph ? 'Hide Graph' : 'Show Graph'}
-                  </button>
-                </div>
               </div>
               
               {/* Top players stats */}
@@ -402,51 +405,6 @@ const FortnitePlayerStats = () => {
                     color="from-blue-500 to-blue-700"
                     isMyProfile={myProfile && myProfile.username === getTopStats().topKD.username}
                   />
-                </div>
-              )}
-              
-              {/* Stats graph visualization */}
-              {showGraph && friends.length > 0 && (
-                <div className="mb-6 p-4 bg-gray-700/30 rounded-lg animate-fade-in">
-                  <h3 className="font-bold mb-4">Comparison Graph</h3>
-                  <div className="h-64 flex items-end justify-around gap-1">
-                    {friends.slice(0, 8).map((friend) => (
-                      <div key={friend.username} className="flex flex-col items-center w-full">
-                        <div className="text-xs text-center w-full truncate mb-1">{friend.username}</div>
-                        <div className="w-full flex justify-center gap-1">
-                          <div 
-                            className="w-3 bg-gradient-to-t from-red-700 to-red-500 rounded-t-sm" 
-                            style={{ height: `${Math.min(friend.kills / 30, 100) * 2}%` }}
-                            title={`Kills: ${friend.kills}`}
-                          ></div>
-                          <div 
-                            className="w-3 bg-gradient-to-t from-green-700 to-green-500 rounded-t-sm" 
-                            style={{ height: `${Math.min(friend.winRate * 4, 100)}%` }}
-                            title={`Win Rate: ${friend.winRate.toFixed(2)}%`}
-                          ></div>
-                          <div 
-                            className="w-3 bg-gradient-to-t from-blue-700 to-blue-500 rounded-t-sm" 
-                            style={{ height: `${Math.min(friend.kd * 15, 100)}%` }}
-                            title={`K/D: ${friend.kd.toFixed(2)}`}
-                          ></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex justify-center mt-2 text-xs">
-                    <div className="flex items-center mr-4">
-                      <div className="w-3 h-3 bg-red-500 mr-1"></div>
-                      <span>Kills</span>
-                    </div>
-                    <div className="flex items-center mr-4">
-                      <div className="w-3 h-3 bg-green-500 mr-1"></div>
-                      <span>Win Rate</span>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 bg-blue-500 mr-1"></div>
-                      <span>K/D</span>
-                    </div>
-                  </div>
                 </div>
               )}
               
@@ -545,37 +503,41 @@ const FortnitePlayerStats = () => {
         )}
       </main>
       
-      {/* Footer */}
-      <footer className="bg-gray-900 text-gray-400 py-6 border-t border-gray-800">
-        <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <p className="flex items-center justify-center md:justify-start">
-                Created with <FaHeart className="mx-1 text-red-500" /> by Christopher Vargas
-              </p>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <a 
-                href="https://github.com/Chrisawgey" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors duration-300 flex items-center"
-              >
-                <FaGithub className="mr-2" /> GitHub
-              </a>
-              <a 
-                href="https://www.linkedin.com/in/chrisvpopoca/" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="hover:text-white transition-colors duration-300 flex items-center"
-              >
-                <FaLinkedin className="mr-2" /> LinkedIn
-              </a>
-            </div>
-          </div>
-        </div>
-      </footer>
+{/* Footer */}
+<footer className="bg-gray-900 text-gray-400 py-6 border-t border-gray-800">
+  <div className="container mx-auto px-4">
+    <div className="flex flex-col md:flex-row items-center justify-between">
+      <div className="mb-4 md:mb-0 flex items-center">
+        <p className="flex items-center justify-center md:justify-start">
+          Created with <FaHeart className="mx-1 text-red-500 animate-pulse" /> by 
+          <span className="ml-1 font-bold text-white relative">
+            Christopher Vargas
+            <span className="absolute -right-4 -top-2 text-xs text-green-400 animate-pulse">👨‍💻</span>
+          </span>
+        </p>
+      </div>
+      
+      <div className="flex items-center space-x-4">
+        <a 
+          href="https://github.com/Chrisawgey" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:text-white transition-colors duration-300 flex items-center hover:scale-105 transform"
+        >
+          <FaGithub className="mr-2" /> GitHub
+        </a>
+        <a 
+          href="https://www.linkedin.com/in/chrisvpopoca/" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="hover:text-white transition-colors duration-300 flex items-center hover:scale-105 transform"
+        >
+          <FaLinkedin className="mr-2" /> LinkedIn
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
     </div>
   );
 };
